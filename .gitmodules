@@ -1,0 +1,3 @@
+[submodule "BrownieAtelierStorage"]
+	path = BrownieAtelierStorage
+	url = https://github.com/pubranko/BrownieAtelierStorage.git

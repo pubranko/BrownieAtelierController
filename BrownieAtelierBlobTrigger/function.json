@@ -1,0 +1,12 @@
+{
+  "scriptFile": "__init__.py",
+  "bindings": [
+    {
+      "name": "myblob",
+      "type": "blobTrigger",
+      "direction": "in",
+      "path": "brownie-atelier/container-stop-coomand-execute",
+      "connection": "brownieatelierdata_STORAGE"
+    }
+  ]
+}

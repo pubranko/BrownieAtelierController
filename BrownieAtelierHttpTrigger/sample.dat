@@ -1,0 +1,19 @@
+{"target_container":"BrownieAtelierApp", "container_controll_command":"create"}
+{"target_container":"BrownieAtelierApp", "container_controll_command":"start"}
+{"target_container":"BrownieAtelierApp", "container_controll_command":"stop"}
+{"target_container":"BrownieAtelierApp", "container_controll_command":"delete"}
+
+{"target_container":"BrownieAtelierAppManual", "container_controll_command":"create"}
+{"target_container":"BrownieAtelierAppManual", "container_controll_command":"start"}
+{"target_container":"BrownieAtelierAppManual", "container_controll_command":"stop"}
+{"target_container":"BrownieAtelierAppManual", "container_controll_command":"delete"}
+
+{"target_container":"BrownieAtelierMongo", "container_controll_command":"create"}
+{"target_container":"BrownieAtelierMongo", "container_controll_command":"start"}
+{"target_container":"BrownieAtelierMongo", "container_controll_command":"stop"}
+{"target_container":"BrownieAtelierMongo", "container_controll_command":"delete"}
+
+{"target_container":"Auto", "container_controll_command":"create"}
+{"target_container":"Auto", "container_controll_command":"start"}
+{"target_container":"Auto", "container_controll_command":"stop"}
+{"target_container":"Auto", "container_controll_command":"delete"}
