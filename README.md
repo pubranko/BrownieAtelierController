@@ -1,4 +1,4 @@
-# Brawnie Atlier Storage
+# Brawnie Atlier Controller
 
 #### 当Gitリポジトリーは、ブラウニー工房（Brawnie Atlier）の一部の機能となります。
 #### AzureFunctionでコンテナーの作成・起動・停止・削除を行う機能となります。
