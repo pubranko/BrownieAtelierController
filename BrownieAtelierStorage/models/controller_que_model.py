@@ -1,5 +1,5 @@
 import logging
-from typing import Final
+from typing import Optional
 
 from azure.storage.queue import QueueServiceClient, QueueClient, QueueMessage
 from azure.core.paging import ItemPaged
@@ -45,7 +45,7 @@ class ControllerQueModel():
         '''
         self.__queue_client.delete_message(message)
 
-    def receive_message(self) -> QueueMessage:
+    def receive_message(self) -> Optional[QueueMessage]:
         '''
         キューを先頭から１件取得する。
         '''

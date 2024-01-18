@@ -29,6 +29,7 @@ container_mongo__env_vars = [
                         secure_value = settings.CONTAINER_MONGO__MONGO_INITDB_ROOT_PASSWORD),
 ]
 
+# コンテナーの中のディレクトリを定義
 container_mongo__volume_mount_1 = VolumeMount(
     name = 'mongo-azure-db',
     mount_path = settings.CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_AZURE_DB,
@@ -45,13 +46,14 @@ container_mongo__volume_mount_4 = VolumeMount(
     name = 'mongo-log',
     mount_path = settings.CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_LOG,
 )
+# MongoDBコンテナーの定義を生成
 container_mongo = Container(
     name = 'mongo',
     image = settings.CONTAINER_MONGO__DOCKER_IMAGE,
-    command = ["mongod", "--config", "/etc/mongo-conf/mongod_tls.conf"],
+    command = ["mongod", "--config", f"/etc/mongo-conf/{settings.CONTAINER_MONGO__MONGO_CONF}"],
     resources = container_mongo__resource_requirements,
     ports = [ContainerPort(
-        port = settings.ACI_GROUP_MONGO_PORT,
+        port = settings.CONTAINER_MONGO__PORT,
         protocol = ContainerGroupNetworkProtocol.TCP)],
     environment_variables = container_mongo__env_vars,
     volume_mounts = [container_mongo__volume_mount_1, container_mongo__volume_mount_2,
@@ -64,6 +66,7 @@ container_mongo = Container(
 storage_account_name: str = settings.AZURE_STORAGE__ACCOUNT_NAME
 storage_account_key: str = settings.AZURE_STORAGE__ACCOUNT_KEY
 
+# コンテナーの外のストレージの定義
 aci_group__volume_1 = Volume(
     name = 'mongo-azure-db',
     azure_file = AzureFileVolume(
@@ -105,15 +108,15 @@ CONTAINER_GROUP = ContainerGroup(
     location = settings.AZURE_LOCATION,
     restart_policy = ContainerGroupRestartPolicy.NEVER,
     image_registry_credentials = [ImageRegistryCredential(
-        server = settings.ACI_DOCKER_IMAGE_REGISTRY_SERVER,
-        username = settings.ACI_DOCKER_IMAGE_REGISTRY_USERNAME,
-        password = settings.ACI_DOCKER_IMAGE_REGISTRY_PASSWORD,
+        server = settings.ACI_DOCKER_IMAGE__REGISTRY_SERVER,
+        username = settings.ACI_DOCKER_IMAGE__REGISTRY_USERNAME,
+        password = settings.ACI_DOCKER_IMAGE__REGISTRY_PASSWORD,
     )],
     os_type = OperatingSystemTypes.LINUX,
     ip_address = IpAddress(
-        ports = [Port(port = settings.ACI_GROUP_MONGO_PORT)],
+        ports = [Port(port = settings.CONTAINER_MONGO__PORT)],
         type = ContainerGroupIpAddressType.PUBLIC,
-        dns_name_label = settings.ACI_GROUP_DNS_NAME_LABEL
+        dns_name_label = settings.CONTAINER_MONGO__DNS_NAME_LABEL
     ),
     volumes = [aci_group__volume_1, aci_group__volume_2,
              aci_group__volume_3, aci_group__volume_4]
