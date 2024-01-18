@@ -1,4 +1,5 @@
 from shared import settings
+from BrownieAtelierStorage import settings as storage_settings
 
 # import models you need
 # https://docs.microsoft.com/en-us/python/api/azure-mgmt-containerinstance/azure.mgmt.containerinstance.models?view = azure-python
@@ -63,8 +64,8 @@ container_mongo = Container(
 ##############################
 # マウントするボリューム
 ##############################
-storage_account_name: str = settings.AZURE_STORAGE__ACCOUNT_NAME
-storage_account_key: str = settings.AZURE_STORAGE__ACCOUNT_KEY
+storage_account_name: str = storage_settings.AZURE_STORAGE__ACCOUNT_NAME
+storage_account_key: str = storage_settings.AZURE_STORAGE__ACCOUNT_KEY
 
 # コンテナーの外のストレージの定義
 aci_group__volume_1 = Volume(

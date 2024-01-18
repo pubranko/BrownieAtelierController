@@ -14,20 +14,7 @@ AZURE_RESOURCE_GROUP_NAME: str = str(
 AZURE_LOCATION: str = str(config('AZURE_LOCATION', default='japaneast'))
 
 # Azure Storage設定
-# BrownieAtelierStorageへ移植
-# AZURE_STORAGE__ACCOUNT_NAME: str = str(
-#     config('AZURE_STORAGE__ACCOUNT_NAME', default='brownieatelierdata'))
-# AZURE_STORAGE__ACCOUNT_KEY: str = str(config('AZURE_STORAGE__ACCOUNT_KEY'))
-#使っていなかった、、、 AZURE_STORAGE__CONNECTION_STRING: str = str(
-#     config('AZURE_STORAGE__CONNECTION_STRING'))
-# AZURE_STORAGE__FILE_SHARE: str = str(config('AZURE_STORAGE__FILE_SHARE'))
-# AZURE_STORAGE__QUE_NAME: str = str(config('AZURE_STORAGE__QUE_NAME', default=''))
-# AZURE_QUE__URL:str = str(config('AZURE_QUE__URL'))
-# BrownieAtelierStorageへ移植
-# AZURE_STORAGE__BLOB_CONTAINER_NAME: str = str(
-#     config('AZURE_STORAGE__BLOB_CONTAINER_NAME', default='brownie-atelier'))
-# AZURE_STORAGE__BLOB_FILE_NAME: str = str(
-#     config('AZURE_STORAGE__BLOB_FILE_NAME', default='container-stop-coomand-execute'))
+# BrownieAtelierStorageのsettingsへ移植
 
 # Azure Functions設定
 AZURE_FUNCTION_URL: str = str(config('AZURE_FUNCTION_URL', default=''))
