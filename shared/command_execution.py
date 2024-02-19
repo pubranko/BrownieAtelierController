@@ -28,7 +28,8 @@ def command_execution(
                     container_group_name=container_group_name,
                     container_group=container_group    # 生成したコンテナーグループ
                 )
-                logging.info(f'コンテナーグループ生成 : {poller.result().name}')
+                # logging.info(f'コンテナーグループ生成 : {poller.result().name}')
+                logging.info(f'コンテナーグループ生成 : {poller.result()}')
             except exceptions.HttpResponseError as e:
                 logging.exception(f'コンテナーグループ生成できませんでした : {e.status_code}')
                 raise
@@ -60,7 +61,8 @@ def command_execution(
                 resource_group_name=resource_group_name,
                 container_group_name=container_group_name,
             )
-            logging.info(f'コンテナーグループ削除 : {poller.result().name}')
+            # logging.info(f'コンテナーグループ削除 : {poller.result().name}')
+            logging.info(f'コンテナーグループ削除 : {poller.result()}')
 
             message = f"deleteで起動しました"
         else:
