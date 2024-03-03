@@ -96,7 +96,7 @@ container_app__container_mongo__volume_mount = VolumeMount(
 
 container_app_manual = Container(
     name='brownie-atelier-app',
-    image=f'${settings.ACI_DOCKER_IMAGE__REGISTRY_SERVER}/${settings.ACI_DOCKER_IMAGE__REGISTRY_USERNAME}/brownie_atelier_app:{settings.CONTAINER_APP__APP_TAG}',
+    image=f'{settings.ACI_DOCKER_IMAGE__REGISTRY_SERVER}/{settings.ACI_DOCKER_IMAGE__REGISTRY_USERNAME}/brownie_atelier_app:{settings.CONTAINER_APP__APP_TAG}',
     command=['bash', '-c', 'while :; do sleep 10000; done'],
     resources=container_app__resource_requirements,
     environment_variables=container_app__env_vars,
@@ -105,7 +105,7 @@ container_app_manual = Container(
 )
 container_app_auto = Container(
     name='brownie-atelier-app',
-    image=f'${settings.ACI_DOCKER_IMAGE__REGISTRY_SERVER}/${settings.ACI_DOCKER_IMAGE__REGISTRY_USERNAME}/brownie_atelier_app:{settings.CONTAINER_APP__APP_TAG}',
+    image=f'{settings.ACI_DOCKER_IMAGE__REGISTRY_SERVER}/{settings.ACI_DOCKER_IMAGE__REGISTRY_USERNAME}/brownie_atelier_app:{settings.CONTAINER_APP__APP_TAG}',
     # コンテナ起動時に左記のシェルを動かす。
     # command=['bash', '-c', 'while :; do sleep 10000; done'],
     command=['bash', f'{settings.CONTAINER_APP__CONTAINER_START_COMMAND}'],
