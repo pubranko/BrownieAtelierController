@@ -29,6 +29,7 @@ container_mongo__resource_requests = ResourceRequests(
 container_mongo__resource_requirements = ResourceRequirements(
     requests=container_mongo__resource_requests
 )
+# コンテナー内の環境変数設定
 container_mongo__env_vars = [
     EnvironmentVariable(
         name="MONGO_INITDB_ROOT_USERNAME",
@@ -41,7 +42,7 @@ container_mongo__env_vars = [
 ]
 # コンテナーの中のディレクトリを定義
 container_mongo__volume_mount_1 = VolumeMount(
-    name="mongo-azure-db",
+    name="mongo-db",
     mount_path=settings.CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_DB,
 )
 container_mongo__volume_mount_2 = VolumeMount(
@@ -98,9 +99,9 @@ storage_account_key: str = storage_settings.AZURE_STORAGE__ACCOUNT_KEY
 
 # コンテナーの外のストレージの定義
 aci_group__volume_1 = Volume(
-    name="mongo-azure-db",
+    name="mongo-db",
     azure_file=AzureFileVolume(
-        share_name="mongo-azure-db",
+        share_name="mongo-db",
         storage_account_name=storage_account_name,
         storage_account_key=storage_account_key,
     ),

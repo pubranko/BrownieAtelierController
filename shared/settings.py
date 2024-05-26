@@ -50,7 +50,7 @@ CONTAINER_MONGO__DNS_NAME_LABEL: str = str(
 )
 CONTAINER_MONGO__PORT: int = int(config("CONTAINER_MONGO__PORT", default="27017"))
 CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_DB: str = str(
-    config("CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_DB", default="/data/mongo-db")
+    config("CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_DB", default="/data/db")
 )
 CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_CONF: str = str(
     config("CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_CONF", default="/etc/mongo-conf")
