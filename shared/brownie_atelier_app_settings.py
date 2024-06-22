@@ -36,15 +36,15 @@ container_app__env_vars = [
     ),
     EnvironmentVariable(
         name="BROWNIE_ATELIER_MONGO__MONGO_USE_DB",
-        value=settings.CONTAINER_APP__MONGO_USE_DB,
+        value=settings.CONTAINER__MONGO_USE_DB,
     ),
     EnvironmentVariable(
         name="BROWNIE_ATELIER_MONGO__MONGO_USER",
-        secure_value=settings.CONTAINER_APP__MONGO_USER,
+        secure_value=settings.CONTAINER__MONGO_USER,
     ),
     EnvironmentVariable(
         name="BROWNIE_ATELIER_MONGO__MONGO_PASS",
-        secure_value=settings.CONTAINER_APP__MONGO_PASS,
+        secure_value=settings.CONTAINER__MONGO_PASS,
     ),
     EnvironmentVariable(
         name="BROWNIE_ATELIER_MONGO__MONGO_TLS", value=settings.CONTAINER_APP__MONGO_TLS

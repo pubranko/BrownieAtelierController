@@ -75,9 +75,9 @@ CONTAINER_MONGO__MONGO_INITDB_ROOT_PASSWORD: str = str(
 ##################################
 ## その他
 CONTAINER_APP__CONTAINER_USER: str = str(
-    config("CONTAINER_APP__CONTAINER_USER", default="brownie")
+    config("CONTAINER_APP__CONTAINER_USER", default="common_user")
 )
-# CONTAINER_APP__USER: str = 'mikuras'
+# CONTAINER_APP__USER: str = 'common_user'
 CONTAINER_APP__CONTAINER_GROUP_NAME: str = str(
     config("CONTAINER_APP__CONTAINER_GROUP_NAME", default="BrownieAtelierApp")
 )  # appの自動操作版
@@ -122,11 +122,11 @@ CONTAINER_APP__MONGO_SERVER: str = str(
 CONTAINER_APP__MONGO_PORT: int = int(
     config("CONTAINER_APP__MONGO_PORT", default=27017)
 )  # ex) 27017
-CONTAINER_APP__MONGO_USE_DB: str = str(
-    config("CONTAINER_APP__MONGO_USE_DB", default="crawler_db")
+CONTAINER__MONGO_USE_DB: str = str(
+    config("CONTAINER__MONGO_USE_DB", default="crawler_db")
 )
-CONTAINER_APP__MONGO_USER: str = str(config("CONTAINER_APP__MONGO_USER"))
-CONTAINER_APP__MONGO_PASS: str = str(config("CONTAINER_APP__MONGO_PASS"))
+CONTAINER__MONGO_USER: str = str(config("CONTAINER__MONGO_USER"))
+CONTAINER__MONGO_PASS: str = str(config("CONTAINER__MONGO_PASS"))
 CONTAINER_APP__MONGO_TLS: str = str(config("CONTAINER_APP__MONGO_TLS", default="false"))
 CONTAINER_APP__MONGO_TLS_CA_FILE: str = os.path.join(
     CONTAINER_APP__VOLUME_MOUNT_PATH__MONGO_KEY,
