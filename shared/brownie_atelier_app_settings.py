@@ -90,7 +90,7 @@ container_app__env_vars = [
     ),
     ## prefect2
     EnvironmentVariable(
-        name="PREFECT__API_URL", secure_value=settings.CONTAINER_APP__PREFECT__API_URL
+        name="PREFECT_API_URL", secure_value=settings.CONTAINER_APP__PREFECT__API_URL
     ),
     EnvironmentVariable(
         name="PREFECT__API_KEY", secure_value=settings.CONTAINER_APP__PREFECT__API_KEY
