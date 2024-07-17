@@ -47,6 +47,10 @@ jobs:
       - name: リポジトリ(${{ github.repository }})・ブランチ(${{ github.ref }})にチェックアウト
         # 上記のリポジトリ・ブランチにチェックアウト
         uses: actions/checkout@v4
+        with:
+          submodules: true  # サブモジュールを含めてチェックアウト
+          fetch-depth: 0    # 全ての履歴をフェッチ
+          # token: ${{ secrets.GITHUB_TOKEN }}  # プライベートリポジトリの場合はトークンが必要
 
       - name: ワークスペースチェック
         # クローン後はここにソースが格納される /home/runner/work/BrownieAtelierController/BrownieAtelierController

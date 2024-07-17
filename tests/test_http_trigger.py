@@ -4,6 +4,7 @@ from pprint import pprint
 
 import msal
 import requests
+from requests.models import Response
 from decouple import config
 
 from shared import settings
@@ -36,10 +37,11 @@ print(f"結果:{result}\n==================\n")
 if result is None:
     raise
 
-headers = ({"Authorization": "Bearer {}".format(result["access_token"])},)
+# headers = ({"Authorization": "Bearer {}".format(result["access_token"])},)
+headers = ({"Authorization": f"Bearer {result['access_token']}"},)
 
 if "access_token" in result:
-    response = requests.post(
+    response:Response = requests.post(
         url=str(config("AZURE_FUNCTION_URL")),
         params={
             "code": str(config("AZURE_FUNCTION_KEY")),
@@ -50,10 +52,10 @@ if "access_token" in result:
                 # "target_container":settings.CONTAINER_APP__CONTAINER_GROUP_NAME,
                 # "target_container":settings.CONTAINER_APP__CONTAINER_GROUP_NAME__MANUAL,
                 "target_container": settings.CONTAINER_MONGO__CONTAINER_GROUP_NAME,
-                # "container_controll_command": settings.CONTAINER_CONTROLL__CREATE,
+                "container_controll_command": settings.CONTAINER_CONTROLL__CREATE,
                 # "container_controll_command": settings.CONTAINER_CONTROLL__START,
                 # "container_controll_command": settings.CONTAINER_CONTROLL__RESTART,
-                "container_controll_command": settings.CONTAINER_CONTROLL__STOP,
+                # "container_controll_command": settings.CONTAINER_CONTROLL__STOP,
                 # "container_controll_command": settings.CONTAINER_CONTROLL__DELETE,
             }
         ),
@@ -62,6 +64,9 @@ if "access_token" in result:
 
     print(response.status_code)
     print(str(response.text))
+    print(type(response))
+    print(response.__dict__,"\n")
+    # print(response.raw._original_response)
 else:
     print(result.get("error"))
     print(result.get("error_description"))
