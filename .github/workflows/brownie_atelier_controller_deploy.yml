@@ -35,7 +35,6 @@ jobs:
     environment:
       name: ${{ needs.Branch-Controll.outputs.env_name }}
     env:
-      AZURE_FUNCTIONAPP_NAME: 'BrownieAtelierController'
       AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'       # set this to the path to your function app project, defaults to the repository root
       PYTHON_VERSION: '3.10'
     
@@ -76,7 +75,7 @@ jobs:
         uses: Azure/functions-action@v1
         id: fa
         with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          app-name: ${{ vars.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
           scm-do-build-during-deployment: true
