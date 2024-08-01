@@ -65,9 +65,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     )
 
     # コントローラーファイルのmodel初期化
-    controller_file_model = ControllerFileModel()
-    mongo_mode_flag = controller_file_model.mode_check()
-    logging.info(f"マニュアルモードチェック: {mongo_mode_flag}")
+    try:
+        controller_file_model = ControllerFileModel()
+        mongo_mode_flag = controller_file_model.mode_check()
+        logging.info(f"マニュアルモードチェック: {mongo_mode_flag}")
+    except Exception as e:
+        logging.exception(
+            f"ファイルストレージにアクセスに失敗しました。 : {e}"
+        )
+        raise
+
+        
 
     ########################################
     # Brownie atelier mongo DBコンテナー
