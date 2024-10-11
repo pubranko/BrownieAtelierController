@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import logging
 
 import azure.functions as func
@@ -17,7 +17,7 @@ from shared.resource_client_get import resource_client_get
 
 def main(myblob: func.InputStream):
     JST = tz.gettz(settings.TIME_ZONE)
-    jst_timestamp = datetime.datetime.utcnow().replace(tzinfo=JST).isoformat()
+    jst_timestamp = datetime.now(timezone.utc).replace(tzinfo=JST).isoformat()
     logging.info(f"BrownieAtelier_BlobTrigger 開始時間: {jst_timestamp}")
     logging.info(f"BLOB名: {myblob.name}")
     logging.info(f"BLOBサイズ: {myblob.length} bytes")
@@ -71,43 +71,43 @@ def main(myblob: func.InputStream):
             f"マニュアルモードがONのため、Brownie atelier mongo DBコンテナーへのコマンドをキャンセルしました。"
         )
     else:
-        # コンテナーが実行中している場合、コンテナーを停止する。
+        # コンテナーが実行中している場合、コンテナーを削除する。
         if container_app__state == "Running":
-            logging.info(f"Brownie atelier mongo DBコンテナー 自動停止")
+            logging.info(f"Brownie atelier mongo DBコンテナー 自動削除")
             result_message = command_execution(
                 str(resource_group.name),
                 aci_client,
                 settings.CONTAINER_MONGO__CONTAINER_GROUP_NAME,
                 brownie_atelier_mongo_settings.CONTAINER_GROUP,
                 container_mongo__state,
-                settings.CONTAINER_CONTROLL__STOP,
+                settings.CONTAINER_CONTROLL__DELETE,
             )
 
             logging.info(
-                f"Brownie atelier mongo DBコンテナー 自動停止結果 : {result_message}"
+                f"Brownie atelier mongo DBコンテナー 自動削除結果 : {result_message}"
             )
         else:
             logging.warning(
-                f"Brownie atelier mongo DBコンテナーが実行中(Running)以外のステータスであったため停止処理をキャンセルしました。"
+                f"Brownie atelier mongo DBコンテナーが実行中(Running)以外のステータスであったため削除処理をキャンセルしました。"
             )
 
     #################################
     # Brownie atelier APP コンテナー
     #################################
     # appコンテナーに対する操作（自動側）
-    # コンテナーが実行中している場合、コンテナーを停止する。
+    # コンテナーが実行中している場合、コンテナーを削除する。
     if container_app__state == "Running":
-        logging.info(f"Brownie atelier APP コンテナー 自動停止")
+        logging.info(f"Brownie atelier APP コンテナー 自動削除")
         result_message = command_execution(
             str(resource_group.name),
             aci_client,
             settings.CONTAINER_APP__CONTAINER_GROUP_NAME,
             brownie_atelier_app_settings.CONTAINER_GROUP__AUTO,
             container_app__state,
-            settings.CONTAINER_CONTROLL__STOP,
+            settings.CONTAINER_CONTROLL__DELETE,
         )
-        logging.info(f"Brownie atelier APPコンテナー 自動停止結果 : {result_message}")
+        logging.info(f"Brownie atelier APPコンテナー 自動削除結果 : {result_message}")
     else:
         logging.warning(
-            f"Brownie atelier APPコンテナーが実行中(Running)以外のステータスであったため停止処理をキャンセルしました。"
+            f"Brownie atelier APPコンテナーが実行中(Running)以外のステータスであったため削除処理をキャンセルしました。"
         )

@@ -5,6 +5,20 @@ from azure.core import exceptions
 from azure.mgmt.containerinstance import ContainerInstanceManagementClient
 from azure.mgmt.containerinstance.models._models_py3 import ContainerGroup
 
+""" statusの種類
+Creating: コンテナーが作成中
+Waiting: コンテナーが起動を待機中
+Pulling: Dockerイメージを取得中
+Pulled: Dockerイメージの取得が完了
+Starting: コンテナーの起動処理中
+Running: コンテナーが実行中
+Terminating: コンテナーが終了処理中
+Stopped: コンテナーが停止されている
+Failed: コンテナーの作成や実行が失敗
+Unknown: コンテナーの状態が不明
+空文字: コンテナーが存在しない。
+"""
+
 
 def container_status_check(
     resource_group_name: str,

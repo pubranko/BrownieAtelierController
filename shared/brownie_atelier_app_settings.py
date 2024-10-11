@@ -57,30 +57,18 @@ container_app__env_vars = [
         name="BROWNIE_ATELIER_MONGO__MONGO_TLS_CERTTIFICATE_KEY_FILE",
         secure_value=settings.CONTAINER_APP__MONGO_TLS_CERTTIFICATE_KEY_FILE,
     ),
-    ## Brownie atelier noticeの設定 (email)
+    ## Brownie atelier noticeの設定 (Slack)
     EnvironmentVariable(
-        name="BROWNIE_ATELIER_NOTICE__SMTP_HOST",
-        secure_value=settings.CONTAINER_APP__NOTICE__SMTP_HOST,
+        name="BROWNIE_ATELIER_NOTICE__SLACK_TOKEN",
+        secure_value=settings.CONTAINER_APP__NOTICE__SLACK_TOKEN,
     ),
     EnvironmentVariable(
-        name="BROWNIE_ATELIER_NOTICE__SMTP_PORT",
-        secure_value=settings.CONTAINER_APP__NOTICE__SMTP_PORT,
+        name="BROWNIE_ATELIER_NOTICE__SLACK_CHANNEL_ID__ERROR",
+        secure_value=settings.CONTAINER_APP__NOTICE__SLACK_CHANNEL_ID__ERROR,
     ),
     EnvironmentVariable(
-        name="BROWNIE_ATELIER_NOTICE__FROM_EMAIL",
-        secure_value=settings.CONTAINER_APP__NOTICE__FROM_EMAIL,
-    ),
-    EnvironmentVariable(
-        name="BROWNIE_ATELIER_NOTICE__TO_EMAIL",
-        secure_value=settings.CONTAINER_APP__NOTICE__TO_EMAIL,
-    ),
-    EnvironmentVariable(
-        name="BROWNIE_ATELIER_NOTICE__PASSWORD",
-        secure_value=settings.CONTAINER_APP__NOTICE__PASSWORD,
-    ),
-    EnvironmentVariable(
-        name="BROWNIE_ATELIER_NOTICE__TIMEOUT_LIMIT",
-        secure_value=settings.CONTAINER_APP__NOTICE__TIMEOUT_LIMIT,
+        name="BROWNIE_ATELIER_NOTICE__SLACK_CHANNEL_ID__NOMAL",
+        secure_value=settings.CONTAINER_APP__NOTICE__SLACK_CHANNEL_ID__NOMAL,
     ),
     ## scrapy
     # EnvironmentVariable(name='SCRAPY_SETTINGS_MODULE',

@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import logging
 
 import azure.functions as func
@@ -17,7 +17,7 @@ from shared.resource_client_get import resource_client_get
 
 def main(mytimer: func.TimerRequest) -> None:
     JST = tz.gettz(settings.TIME_ZONE)
-    jst_timestamp = datetime.datetime.utcnow().replace(tzinfo=JST).isoformat()
+    jst_timestamp = datetime.now(timezone.utc).replace(tzinfo=JST).isoformat()
     logging.info(f"BrownieAtelier_TimerTrigger 開始時間: {jst_timestamp}")
 
     if mytimer.past_due:
@@ -80,7 +80,7 @@ def main(mytimer: func.TimerRequest) -> None:
                 settings.CONTAINER_MONGO__CONTAINER_GROUP_NAME,
                 brownie_atelier_mongo_settings.CONTAINER_GROUP,
                 container_mongo__state,
-                settings.CONTAINER_CONTROLL__START,
+                settings.CONTAINER_CONTROLL__CREATE,
             )
 
             logging.info(

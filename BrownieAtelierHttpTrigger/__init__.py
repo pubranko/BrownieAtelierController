@@ -75,7 +75,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
         raise
 
-        
 
     ########################################
     # Brownie atelier mongo DBコンテナー
@@ -104,17 +103,18 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         == settings.CONTAINER_MONGO__CONTAINER_GROUP_NAME
     ):
         logging.info(f"Brownie atelier mongo DBコンテナー 手動操作開始")
-        # スタートコマンドがリクエストされた場合、コントローラーファイルをONにする。
-        # ストップコマンドがリクエストされた場合、コントローラーファイルをOFFにする。
+        # 作成・開始コマンドがリクエストされた場合、コントローラーファイルをONにする。
+        # 削除・停止コマンドがリクエストされた場合、コントローラーファイルをOFFにする。
         if checked_params.container_controll_command in [
+            settings.CONTAINER_CONTROLL__CREATE,
             settings.CONTAINER_CONTROLL__START,
             settings.CONTAINER_CONTROLL__RESTART,
         ]:
             controller_file_model.manual_mode_on()
-        elif (
-            checked_params.container_controll_command
-            == settings.CONTAINER_CONTROLL__STOP
-        ):
+        elif checked_params.container_controll_command in [
+               settings.CONTAINER_CONTROLL__DELETE,
+               settings.CONTAINER_CONTROLL__STOP,
+        ]:
             controller_file_model.manual_mode_off()
 
         result_message = command_execution(
