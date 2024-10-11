@@ -9,14 +9,12 @@ class BrownieAtelierHttpTriggerInput(BaseModel):
     """
     BrownieAtelierHttpTriggerの起動に必要な引数のチェックを行う。
     ・target_container: 指定がない場合、Autoをデフォルトとする。
-    ・container_controll_command: 指定がない場合、stopをデフォルトとする。
     """
 
     target_container: str = Field(
         default=settings.TARGET_CONTAINER__AUTO, title="対象コンテナー"
     )
     container_controll_command: str = Field(
-        default=settings.CONTAINER_CONTROLL__STOP,
         title="コンテナーコントロールコマンド",
     )
 
