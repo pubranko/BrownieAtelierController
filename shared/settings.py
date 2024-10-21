@@ -108,7 +108,7 @@ CONTAINER_APP__VOLUME_MOUNT_PATH__MONGO_KEY: str = str(
 CONTAINER_APP__CONTAINER_START_COMMAND: str = str(
     config(
         "CONTAINER_APP__CONTAINER_START_COMMAND",
-        default=f"/home/{CONTAINER_APP__CONTAINER_USER}/BrownieAtelier/sh/prefect_agent_start__cloud.sh",
+        default=f"/home/{CONTAINER_APP__CONTAINER_USER}/BrownieAtelier/sh/prefect_worker_start__cloud.sh",
     )
 )
 # コンテナー内部で使用する環境変数
