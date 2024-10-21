@@ -9,8 +9,8 @@ from shared import settings
 # for attribute in attributes:
 #     print(attribute + '')
 # pprint(settings)
-
-attributes = inspect.getmembers(settings)
-n_max = len(attributes)
-for n, (attribute, value) in enumerate(attributes, start=1):
-    print(f"{n}/{n_max} {attribute} {type(value)} {value}")
+if __name__ == "__main__":
+    attributes = inspect.getmembers(settings)
+    n_max = len(attributes)
+    for n, (attribute, value) in enumerate(attributes, start=1):
+        print(f"{n}/{n_max} {attribute} {type(value)} {value}")
