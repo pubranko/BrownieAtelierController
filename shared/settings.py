@@ -108,7 +108,7 @@ CONTAINER_APP__VOLUME_MOUNT_PATH__MONGO_KEY: str = str(
 CONTAINER_APP__CONTAINER_START_COMMAND: str = str(
     config(
         "CONTAINER_APP__CONTAINER_START_COMMAND",
-        default=f"/home/{CONTAINER_APP__CONTAINER_USER}/BrownieAtelier/sh/prefect_agent_start__cloud.sh",
+        default=f"/home/{CONTAINER_APP__CONTAINER_USER}/BrownieAtelier/sh/prefect_worker_start__cloud.sh",
     )
 )
 # コンテナー内部で使用する環境変数
@@ -136,17 +136,10 @@ CONTAINER_APP__MONGO_TLS_CERTTIFICATE_KEY_FILE: str = os.path.join(
     CONTAINER_APP__VOLUME_MOUNT_PATH__MONGO_KEY,
     str(config("CONTAINER_APP__MONGO_TLS_CERTTIFICATE_KEY_FILE")),
 )
-## Brownie atelier noticeの設定 (email)
-CONTAINER_APP__NOTICE__SMTP_HOST: str = str(config("CONTAINER_APP__NOTICE__SMTP_HOST"))
-CONTAINER_APP__NOTICE__SMTP_PORT: str = str(config("CONTAINER_APP__NOTICE__SMTP_PORT"))
-CONTAINER_APP__NOTICE__FROM_EMAIL: str = str(
-    config("CONTAINER_APP__NOTICE__FROM_EMAIL")
-)
-CONTAINER_APP__NOTICE__TO_EMAIL: str = str(config("CONTAINER_APP__NOTICE__TO_EMAIL"))
-CONTAINER_APP__NOTICE__PASSWORD: str = str(config("CONTAINER_APP__NOTICE__PASSWORD"))
-CONTAINER_APP__NOTICE__TIMEOUT_LIMIT: str = str(
-    config("CONTAINER_APP__NOTICE__TIMEOUT_LIMIT", default=60)
-)
+## Brownie atelier noticeの設定 (Slack)
+CONTAINER_APP__NOTICE__SLACK_TOKEN: str = str(config("CONTAINER_APP__NOTICE__SLACK_TOKEN"))
+CONTAINER_APP__NOTICE__SLACK_CHANNEL_ID__ERROR: str = str(config("CONTAINER_APP__NOTICE__SLACK_CHANNEL_ID__ERROR"))
+CONTAINER_APP__NOTICE__SLACK_CHANNEL_ID__NOMAL: str = str(config("CONTAINER_APP__NOTICE__SLACK_CHANNEL_ID__NOMAL"))
 ## scrapy
 # CONTAINER_APP__SCRAPY_SETTINGS_MODULE: str = str(
 #     config('CONTAINER_APP__SCRAPY_SETTINGS_MODULE', default='news_crawl.settings'))
