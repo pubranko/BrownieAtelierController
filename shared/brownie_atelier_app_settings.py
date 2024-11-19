@@ -105,6 +105,10 @@ container_app__env_vars = [
     #                     secure_value=f'/home/{settings.CONTAINER_APP__CONTAINER_USER}'),
     ## Azure Storage
     EnvironmentVariable(
+        name="AZURE_STORAGE__CONNECTION_STRING",
+        value=storage_settings.AZURE_STORAGE__CONNECTION_STRING,
+    ),
+    EnvironmentVariable(
         name="AZURE_STORAGE__BLOB_CONTAINER_NAME",
         value=storage_settings.AZURE_STORAGE__BLOB_CONTAINER_NAME,
     ),
