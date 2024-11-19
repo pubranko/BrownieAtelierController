@@ -72,8 +72,8 @@ def main(mytimer: func.TimerRequest) -> None:
             f"マニュアルモードがONのため、Brownie atelier mongo DBコンテナーへのコマンドをキャンセルしました。"
         )
     else:
-        if container_app__state == "Stopped":
-            logging.info(f"Brownie atelier mongo DBコンテナー 自動開始")
+        if not container_app__state:
+            logging.info(f"Brownie atelier mongo DBコンテナー 自動作成(create)")
             result_message = command_execution(
                 str(resource_group.name),
                 aci_client,
@@ -84,11 +84,11 @@ def main(mytimer: func.TimerRequest) -> None:
             )
 
             logging.info(
-                f"Brownie atelier mongo DBコンテナー 自動開始結果 : {result_message}"
+                f"Brownie atelier mongo DBコンテナー 自動作成結果 : {result_message}"
             )
         else:
             logging.warning(
-                f"Brownie atelier mongo DBコンテナーが停止(Stopped)以外のステータスであったため開始処理を停止しました。"
+                f"Brownie atelier mongo DBコンテナーが存在したため作成処理をキャンセルしました。"
             )
 
     #################################
@@ -96,18 +96,18 @@ def main(mytimer: func.TimerRequest) -> None:
     #################################
     # appコンテナーに対する操作（自動側）
     # コンテナーが停止している場合、コンテナーを開始する。
-    if container_app__state == "Stopped":
-        logging.info(f"Brownie atelier APP コンテナー 自動開始")
+    if not container_app__state:
+        logging.info(f"Brownie atelier APP コンテナー 自動作成(create)")
         result_message = command_execution(
             str(resource_group.name),
             aci_client,
             settings.CONTAINER_APP__CONTAINER_GROUP_NAME,
             brownie_atelier_app_settings.CONTAINER_GROUP__AUTO,
             container_app__state,
-            settings.CONTAINER_CONTROLL__START,
+            settings.CONTAINER_CONTROLL__CREATE,
         )
-        logging.info(f"Brownie atelier APPコンテナー 自動開始結果 : {result_message}")
+        logging.info(f"Brownie atelier APPコンテナー 自動作成結果 : {result_message}")
     else:
         logging.warning(
-            f"Brownie atelier APPコンテナーが停止(Stopped)以外のステータスであったため開始処理を停止しました。"
+            f"Brownie atelier APPコンテナーが存在したため作成処理をキャンセル停止しました。"
         )
