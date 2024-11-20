@@ -6,7 +6,7 @@
       "type": "blobTrigger",
       "direction": "in",
       "path": "brownie-atelier/container-stop-coomand-execute",
-      "connection": "AZURE_STORAGE__CONNECTION_STRING"
+      "connection": "AzureWebJobsStorage"
     }
   ]
 }
