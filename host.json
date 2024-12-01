@@ -6,6 +6,13 @@
         "isEnabled": true,
         "excludedTypes": "Request"
       }
+    },
+    "logLevel": {
+      "default": "Warning",
+      "Custom": "Information",
+      "Function": "Information",
+      "Host.Results": "Information",
+      "Azure.Core": "Error"
     }
   },
   "extensionBundle": {
