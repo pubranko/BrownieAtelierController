@@ -83,6 +83,9 @@ container_mongo__volume_mount_5 = VolumeMount(
     mount_path=settings.CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_INIT,
 )
 # MongoDBコンテナーの定義を生成
+mongo_conf_path:str = os.path.join(
+        settings.CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_CONF,
+        settings.CONTAINER_MONGO__MONGO_CONF)
 container_mongo = Container(
     name="mongo",
     image=f"mongo:{settings.CONTAINER_MONGO__MONGO_TAG}",
@@ -103,9 +106,7 @@ container_mongo = Container(
     command=[
         "/bin/sh",
         "-c",
-        f"sleep 5 && mongod --config {os.path.join(
-            settings.CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_CONF,
-            settings.CONTAINER_MONGO__MONGO_CONF)}",
+        f"sleep 5 && mongod --config {mongo_conf_path}",
     ],
     resources=container_mongo__resource_requirements,
     ports=[
