@@ -101,12 +101,11 @@ container_mongo = Container(
     #   初期ユーザーの作成処理などは動かないためエラーは起こらない。
     #################################################################################################
     command=[
-        "mongod",
-        "--config",
-        os.path.join(
+        "/bin/sh",
+        "-c",
+        f"sleep 5 && mongod --config {os.path.join(
             settings.CONTAINER_MONGO__VOLUME_MOUNT_PATH__MONGO_CONF,
-            settings.CONTAINER_MONGO__MONGO_CONF,
-        ),
+            settings.CONTAINER_MONGO__MONGO_CONF)}",
     ],
     resources=container_mongo__resource_requirements,
     ports=[
