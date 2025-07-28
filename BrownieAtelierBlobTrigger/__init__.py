@@ -71,42 +71,42 @@ def main(myblob: func.InputStream):
         )
     else:
         # コンテナーが実行中している場合、コンテナーを削除する。
-        if container_news_crawler__state == "Running":
-            logging.info(f"Brownie atelier mongo DBコンテナー 自動削除")
-            result_message = command_execution(
-                str(resource_group.name),
-                aci_client,
-                settings.CONTAINER_MONGO__CONTAINER_GROUP_NAME,
-                brownie_atelier_mongo_settings.CONTAINER_GROUP,
-                container_mongo__state,
-                settings.CONTAINER_CONTROLL__DELETE,
-            )
+        # if container_news_crawler__state == "Running":
+        logging.info(f"Brownie atelier mongo DBコンテナー 自動削除")
+        result_message = command_execution(
+            str(resource_group.name),
+            aci_client,
+            settings.CONTAINER_MONGO__CONTAINER_GROUP_NAME,
+            brownie_atelier_mongo_settings.CONTAINER_GROUP,
+            container_mongo__state,
+            settings.CONTAINER_CONTROLL__DELETE,
+        )
 
-            logging.info(
-                f"Brownie atelier mongo DBコンテナー 自動削除結果 : {result_message}"
-            )
-        else:
-            logging.warning(
-                f"Brownie atelier mongo DBコンテナーが実行中(Running)以外のステータスであったため削除処理をキャンセルしました。"
-            )
+        logging.info(
+            f"Brownie atelier mongo DBコンテナー 自動削除結果 : {result_message}"
+        )
+        # else:
+        #     logging.warning(
+        #         f"Brownie atelier mongo DBコンテナーが実行中(Running)以外のステータスであったため削除処理をキャンセルしました。"
+        #     )
 
     #################################
     # Brownie atelier news crawler コンテナー
     #################################
     # news_crawlerコンテナーに対する操作（自動側）
     # コンテナーが実行中している場合、コンテナーを削除する。
-    if container_news_crawler__state == "Running":
-        logging.info(f"Brownie atelier news crawler コンテナー 自動削除")
-        result_message = command_execution(
-            str(resource_group.name),
-            aci_client,
-            settings.CONTAINER_NEWS_CRAWLER__CONTAINER_GROUP_NAME,
-            brownie_atelier_news_crawler_settings.CONTAINER_GROUP__AUTO,
-            container_news_crawler__state,
-            settings.CONTAINER_CONTROLL__DELETE,
-        )
-        logging.info(f"Brownie atelier news crawlerコンテナー 自動削除結果 : {result_message}")
-    else:
-        logging.warning(
-            f"Brownie atelier news crawlerコンテナーが実行中(Running)以外のステータスであったため削除処理をキャンセルしました。"
-        )
+    # if container_news_crawler__state == "Running":
+    logging.info(f"Brownie atelier news crawler コンテナー 自動削除")
+    result_message = command_execution(
+        str(resource_group.name),
+        aci_client,
+        settings.CONTAINER_NEWS_CRAWLER__CONTAINER_GROUP_NAME,
+        brownie_atelier_news_crawler_settings.CONTAINER_GROUP__AUTO,
+        container_news_crawler__state,
+        settings.CONTAINER_CONTROLL__DELETE,
+    )
+    logging.info(f"Brownie atelier news crawlerコンテナー 自動削除結果 : {result_message}")
+    # else:
+    #     logging.warning(
+    #         f"Brownie atelier news crawlerコンテナーが実行中(Running)以外のステータスであったため削除処理をキャンセルしました。"
+    #     )
