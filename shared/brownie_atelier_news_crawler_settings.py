@@ -110,7 +110,10 @@ container_news_crawler__env_vars = [
     # EnvironmentVariable(name='PREFECT_LOGGING_INTERNAL_LEVEL',
     #                     secure_value=settings.CONTAINER_CRAWLER__PREFECT_LOGGING_INTERNAL_LEVEL),
     EnvironmentVariable(
-        name="PREFECT__DATA", secure_value=settings.CONTAINER_CRAWLER__PREFECT__DATA
+        name="PREFECT__DATA", value=settings.CONTAINER_CRAWLER__PREFECT__DATA
+    ),
+    EnvironmentVariable(
+        name="PREFECT_HOME", value=settings.CONTAINER_CRAWLER__PREFECT_HOME
     ),
     # ## その他
     # EnvironmentVariable(name='CONTAINER_HOME',
