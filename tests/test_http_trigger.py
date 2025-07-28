@@ -51,8 +51,8 @@ if __name__ == "__main__":
             data=json.dumps(
                 {
                     "target_container":settings.TARGET_CONTAINER__AUTO,
-                    # "target_container":settings.CONTAINER_APP__CONTAINER_GROUP_NAME,
-                    # "target_container":settings.CONTAINER_APP__CONTAINER_GROUP_NAME__MANUAL,
+                    # "target_container":settings.CONTAINER_NEWS_CRAWLER__CONTAINER_GROUP_NAME,
+                    # "target_container":settings.CONTAINER_NEWS_CRAWLER__CONTAINER_GROUP_NAME__MANUAL,
                     # "target_container": settings.CONTAINER_MONGO__CONTAINER_GROUP_NAME,
                     "container_controll_command": settings.CONTAINER_CONTROLL__CREATE,
                     # "container_controll_command": settings.CONTAINER_CONTROLL__START,
