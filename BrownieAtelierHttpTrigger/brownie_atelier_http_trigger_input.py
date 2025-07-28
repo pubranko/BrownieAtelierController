@@ -1,7 +1,5 @@
 from typing import Any
-
-from pydantic import BaseModel, Field, validator
-
+from pydantic import BaseModel, Field, field_validator
 from shared import settings
 
 
@@ -29,32 +27,30 @@ class BrownieAtelierHttpTriggerInput(BaseModel):
     ##################################
     # 単項目チェック
     ##################################
-    @validator("target_container")
-    def target_container_check(cls, value: str, values: dict) -> str:
+    @field_validator("target_container")
+    @classmethod
+    def target_container_check(cls, value: str) -> str:
         if value:
             assert isinstance(value, str), "文字列型以外がエラー"
-
             if value not in settings.TARGET_CONTAINER_LIST:
                 raise ValueError(
                     f"""対象コンテナーの指定ミス。
                         {', '.join(settings.TARGET_CONTAINER_LIST)},
                         で入力してください。"""
                 )
-
         return value
 
-    @validator("container_controll_command")
-    def container_controll_command_check(cls, value: str, values: dict) -> str:
+    @field_validator("container_controll_command")
+    @classmethod
+    def container_controll_command_check(cls, value: str) -> str:
         if value:
             assert isinstance(value, str), "文字列型以外がエラー"
-
             if value not in settings.CONTAINER_CONTROLL_LIST:
                 raise ValueError(
                     f"""コンテナーコントロールコマンドの指定ミス。
                         {', '.join(settings.CONTAINER_CONTROLL_LIST)}
                         で入力してください。"""
                 )
-
         return value
 
     ###################################

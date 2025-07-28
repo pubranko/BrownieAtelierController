@@ -33,14 +33,14 @@ if __name__ == "__main__":
     空文字: コンテナーが存在しない。
     """
 
-    # APPコンテナーのステータスを取得。
-    container_app__state = container_status_check(
+    # news_crawlerコンテナーのステータスを取得。
+    container_news_crawler__state = container_status_check(
         str(resource_group.name),
         aci_client,
-        settings.CONTAINER_APP__CONTAINER_GROUP_NAME,
+        settings.CONTAINER_NEWS_CRAWLER__CONTAINER_GROUP_NAME,
     )
         
-    print(f"App:「{type(container_app__state)}」:「{container_app__state}」")
+    print(f"Neww crawler:「{type(container_news_crawler__state)}」:「{container_news_crawler__state}」")
 
     # Mongoコンテナーのステータスを取得。
     container_mongo__state = container_status_check(
@@ -49,4 +49,4 @@ if __name__ == "__main__":
         settings.CONTAINER_MONGO__CONTAINER_GROUP_NAME,
     )
 
-    print(f"Mongo:「{type(container_app__state)}」:「{container_app__state}」")
+    print(f"Mongo:「{type(container_news_crawler__state)}」:「{container_news_crawler__state}」")
