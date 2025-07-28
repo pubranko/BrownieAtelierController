@@ -8,8 +8,7 @@ from dateutil import tz
 
 from BrownieAtelierStorage.models.controller_file_model import \
     ControllerFileModel
-from shared import (brownie_atelier_app_settings,
-                    brownie_atelier_mongo_settings, settings)
+from shared import brownie_atelier_mongo_settings, brownie_atelier_news_crawler_settings, settings
 from shared.command_execution import command_execution
 from shared.container_status_check import container_status_check
 from shared.resource_client_get import resource_client_get
@@ -38,16 +37,16 @@ def main(myblob: func.InputStream):
         credential, settings.AZURE_SUBSCRIPTION_ID
     )
 
-    container_app__state: str = ""  # app側のコンテナーのステータス
+    container_news_crawler__state: str = ""  # app側のコンテナーのステータス
     container_mongo__state: str = ""  # mongo側のコンテナーのステータス
     result_message: str = ""  # HttpTriggerのresponseメッセージ
 
     # 各コンテナーのステータスチェック
     # appコンテナ
-    container_app__state = container_status_check(
+    container_news_crawler__state = container_status_check(
         str(resource_group.name),
         aci_client,
-        settings.CONTAINER_APP__CONTAINER_GROUP_NAME,
+        settings.CONTAINER_NEWS_CRAWLER__CONTAINER_GROUP_NAME,
     )
     # mongoコンテナ
     container_mongo__state = container_status_check(
@@ -72,7 +71,7 @@ def main(myblob: func.InputStream):
         )
     else:
         # コンテナーが実行中している場合、コンテナーを削除する。
-        if container_app__state == "Running":
+        if container_news_crawler__state == "Running":
             logging.info(f"Brownie atelier mongo DBコンテナー 自動削除")
             result_message = command_execution(
                 str(resource_group.name),
@@ -92,22 +91,22 @@ def main(myblob: func.InputStream):
             )
 
     #################################
-    # Brownie atelier APP コンテナー
+    # Brownie atelier news crawler コンテナー
     #################################
-    # appコンテナーに対する操作（自動側）
+    # news_crawlerコンテナーに対する操作（自動側）
     # コンテナーが実行中している場合、コンテナーを削除する。
-    if container_app__state == "Running":
-        logging.info(f"Brownie atelier APP コンテナー 自動削除")
+    if container_news_crawler__state == "Running":
+        logging.info(f"Brownie atelier news crawler コンテナー 自動削除")
         result_message = command_execution(
             str(resource_group.name),
             aci_client,
-            settings.CONTAINER_APP__CONTAINER_GROUP_NAME,
-            brownie_atelier_app_settings.CONTAINER_GROUP__AUTO,
-            container_app__state,
+            settings.CONTAINER_NEWS_CRAWLER__CONTAINER_GROUP_NAME,
+            brownie_atelier_news_crawler_settings.CONTAINER_GROUP__AUTO,
+            container_news_crawler__state,
             settings.CONTAINER_CONTROLL__DELETE,
         )
-        logging.info(f"Brownie atelier APPコンテナー 自動削除結果 : {result_message}")
+        logging.info(f"Brownie atelier news crawlerコンテナー 自動削除結果 : {result_message}")
     else:
         logging.warning(
-            f"Brownie atelier APPコンテナーが実行中(Running)以外のステータスであったため削除処理をキャンセルしました。"
+            f"Brownie atelier news crawlerコンテナーが実行中(Running)以外のステータスであったため削除処理をキャンセルしました。"
         )
