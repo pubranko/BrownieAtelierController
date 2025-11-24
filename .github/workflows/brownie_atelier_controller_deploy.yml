@@ -7,6 +7,11 @@ on:
     # Githubより手動で起動
     workflow_dispatch:
 
+# azure/login@v2アクションはデフォルトでOIDC認証（IDトークン連携）を使うため、以下の権限が必要。
+permissions:
+  id-token: write      # （OIDCトークン必須！）
+  contents: read       # （リポジトリクローンも必須）
+
 jobs:
 
   Branch-Controll:
