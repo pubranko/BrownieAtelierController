@@ -93,5 +93,4 @@ jobs:
             --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
             --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
             --src function.zip \
-            --is-flex-consumption true
 
