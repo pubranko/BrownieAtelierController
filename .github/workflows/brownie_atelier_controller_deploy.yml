@@ -1,7 +1,8 @@
 name: Brownie Atelier Controller Deploy
 run-name: Brownie Atelier Controller Deploy!!!
 # Function App が存在しない場合は、リソースグループ内の既存ストレージ（brownieatelierfunc*）を参照し、
-# 空いている連番（01, 02, ...）でストレージを新規作成してから Function App を新規作成・デプロイします。
+# 空いている連番（000001〜999999、6桁）でストレージを新規作成してから Function App（Flex Consumption プラン）を新規作成・デプロイします。
+# プラン名は brownie-atelier-function-flex-plan-<AZURE_LOCATION>（関数名に依存しない。プランはリージョンごとに1つで共有）。
 # リソースグループは既存を利用する前提です。新規作成時には環境変数（vars）に AZURE_LOCATION が必要です。
 on:
     # 以下のブランチにプッシュされた際起動
@@ -44,7 +45,8 @@ jobs:
       name: ${{ needs.Branch-Controll.outputs.env_name }}
     env:
       PYTHON_VERSION: '3.10'
-    
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
 
     steps:
       - run: echo "🎉 起動イベントの種類 (${{ github.event_name }})"
@@ -87,12 +89,12 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Check if Function App exists
+      - name: デプロイ対象の関数の存在チェック
         id: check_functionapp
         run: |
           if az functionapp show \
             --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --resource-group $AZURE_RESOURCE_GROUP \
             --output none 2>/dev/null; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "Function App は既に存在します"
@@ -101,56 +103,78 @@ jobs:
             echo "Function App が存在しないため、新規作成します"
           fi
 
-      - name: Create Storage Account (if Function App does not exist)
+      - name: 関数新規作成時のストレージを新規作成（関数未作成時のみ）
         id: create_storage
         if: steps.check_functionapp.outputs.exists == 'false'
         run: |
-          LOCATION="${{ vars.AZURE_LOCATION }}"
-          RG="${{ vars.AZURE_RESOURCE_GROUP }}"
           PREFIX="brownieatelierfunc"
-          if [ -z "$LOCATION" ]; then
+          if [ -z "$AZURE_LOCATION" ]; then
             echo "::error::Function App を新規作成する場合は、環境変数 AZURE_LOCATION を設定してください。"
             exit 1
           fi
-          # 01〜99 のうち、未使用の連番を採用（既存の brownieatelierfunc* を参照）
+          # 000001〜999999 のうち、未使用の連番を採用（既存の brownieatelierfunc* を参照、24桁までなので6桁連番）
           NAME=""
-          for i in $(seq 1 99); do
-            SUFFIX=$(printf "%02d" $i)
+          for i in $(seq 1 999999); do
+            SUFFIX=$(printf "%06d" $i)
             CANDIDATE="${PREFIX}${SUFFIX}"
-            if ! az storage account show --name "$CANDIDATE" --resource-group "$RG" --output none 2>/dev/null; then
+            if ! az storage account show --name "$CANDIDATE" --resource-group "$AZURE_RESOURCE_GROUP" --output none 2>/dev/null; then
               NAME="$CANDIDATE"
               break
             fi
           done
           if [ -z "$NAME" ]; then
-            echo "::error::brownieatelierfunc01〜99 のいずれも使用中のため、ストレージ名を割り当てられません。"
+            echo "::error::brownieatelierfunc000001〜brownieatelierfunc999999 のいずれも使用中のため、ストレージ名を割り当てられません。"
             exit 1
           fi
           echo "ストレージアカウント $NAME を作成します（使用可能な連番を自動作成）"
           az storage account create \
             --name "$NAME" \
-            --resource-group "$RG" \
-            --location "$LOCATION" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --location "$AZURE_LOCATION" \
             --sku Standard_LRS
           echo "storage_name=$NAME" >> $GITHUB_OUTPUT
 
-      - name: Create Function App (if does not exist)
+      - name: 関数新規作成時のプランを新規作成（関数未作成時のみ）
+        id: create_flex_plan
+        if: steps.check_functionapp.outputs.exists == 'false'
+        run: |
+          # プラン名は関数名に依存しない（関数名変更時も再利用）。プランはリージョンに紐づくため、ロケーションごとに1つ。
+          PLAN_NAME="brownie-atelier-function-flex-plan-${AZURE_LOCATION}"
+          if [ -z "$AZURE_LOCATION" ]; then
+            echo "::error::Function App を新規作成する場合は、環境変数 AZURE_LOCATION を設定してください。"
+            exit 1
+          fi
+          # 既存プランの有無を確認
+          if az functionapp plan show --name "$PLAN_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --output none 2>/dev/null; then
+            echo "既存の Flex Consumption プラン $PLAN_NAME を使用します"
+          else
+            echo "Flex Consumption プラン $PLAN_NAME を作成します"
+            az functionapp plan create \
+              --name "$PLAN_NAME" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --location "$AZURE_LOCATION" \
+              --sku FC1 \
+              --is-linux
+          fi
+          echo "plan_name=$PLAN_NAME" >> $GITHUB_OUTPUT
+
+      - name: 関数を新規作成（関数未作成時のみ）
         if: steps.check_functionapp.outputs.exists == 'false'
         run: |
           az functionapp create \
             --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --resource-group $AZURE_RESOURCE_GROUP \
             --storage-account ${{ steps.create_storage.outputs.storage_name }} \
-            --consumption-plan-location ${{ vars.AZURE_LOCATION }} \
+            --plan ${{ steps.create_flex_plan.outputs.plan_name }} \
             --runtime python \
             --runtime-version ${{ env.PYTHON_VERSION }} \
             --functions-version 4 \
             --os-type Linux
 
-      - name: Deploy to Azure Function via CLI
+      - name: 関数をデプロイ
         run: |
           az functionapp deployment source config-zip \
             --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --resource-group $AZURE_RESOURCE_GROUP \
             --src function.zip \
 
