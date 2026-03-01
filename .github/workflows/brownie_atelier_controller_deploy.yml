@@ -146,10 +146,18 @@ jobs:
             --runtime-version ${{ env.PYTHON_VERSION }} \
             --functions-version 4
 
+      - name: Flex Consumption の初期化待機（新規作成時のみ）
+        if: steps.check_functionapp.outputs.exists == 'false'
+        run: |
+          echo "新規作成直後は Flex Consumption の初期化に時間がかかるため、90秒待機します"
+          sleep 90
+
       - name: 関数をデプロイ
         run: |
           az functionapp deployment source config-zip \
             --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
             --resource-group $AZURE_RESOURCE_GROUP \
             --src function.zip \
+            --timeout 600 \
+            --build-remote true
 
