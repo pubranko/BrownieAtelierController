@@ -1,5 +1,8 @@
 name: Brownie Atelier Controller Deploy
 run-name: Brownie Atelier Controller Deploy!!!
+# Function App が存在しない場合は、リソースグループ内の既存ストレージ（brownieatelierfunc*）を参照し、
+# 空いている連番（01, 02, ...）でストレージを新規作成してから Function App を新規作成・デプロイします。
+# リソースグループは既存を利用する前提です。新規作成時には環境変数（vars）に AZURE_LOCATION が必要です。
 on:
     # 以下のブランチにプッシュされた際起動
     push:
@@ -83,6 +86,66 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Check if Function App exists
+        id: check_functionapp
+        run: |
+          if az functionapp show \
+            --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --output none 2>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Function App は既に存在します"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Function App が存在しないため、新規作成します"
+          fi
+
+      - name: Create Storage Account (if Function App does not exist)
+        id: create_storage
+        if: steps.check_functionapp.outputs.exists == 'false'
+        run: |
+          LOCATION="${{ vars.AZURE_LOCATION }}"
+          RG="${{ vars.AZURE_RESOURCE_GROUP }}"
+          PREFIX="brownieatelierfunc"
+          if [ -z "$LOCATION" ]; then
+            echo "::error::Function App を新規作成する場合は、環境変数 AZURE_LOCATION を設定してください。"
+            exit 1
+          fi
+          # 01〜99 のうち、未使用の連番を採用（既存の brownieatelierfunc* を参照）
+          NAME=""
+          for i in $(seq 1 99); do
+            SUFFIX=$(printf "%02d" $i)
+            CANDIDATE="${PREFIX}${SUFFIX}"
+            if ! az storage account show --name "$CANDIDATE" --resource-group "$RG" --output none 2>/dev/null; then
+              NAME="$CANDIDATE"
+              break
+            fi
+          done
+          if [ -z "$NAME" ]; then
+            echo "::error::brownieatelierfunc01〜99 のいずれも使用中のため、ストレージ名を割り当てられません。"
+            exit 1
+          fi
+          echo "ストレージアカウント $NAME を作成します（使用可能な連番を自動作成）"
+          az storage account create \
+            --name "$NAME" \
+            --resource-group "$RG" \
+            --location "$LOCATION" \
+            --sku Standard_LRS
+          echo "storage_name=$NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Function App (if does not exist)
+        if: steps.check_functionapp.outputs.exists == 'false'
+        run: |
+          az functionapp create \
+            --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --storage-account ${{ steps.create_storage.outputs.storage_name }} \
+            --consumption-plan-location ${{ vars.AZURE_LOCATION }} \
+            --runtime python \
+            --runtime-version ${{ env.PYTHON_VERSION }} \
+            --functions-version 4 \
+            --os-type Linux
 
       - name: Deploy to Azure Function via CLI
         run: |
