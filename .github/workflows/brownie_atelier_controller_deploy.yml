@@ -1,9 +1,6 @@
 name: Brownie Atelier Controller Deploy
 run-name: Brownie Atelier Controller Deploy!!!
-# Function App が存在しない場合は、リソースグループ内の既存ストレージ（brownieatelierfunc*）を参照し、
-# 空いている連番（000001〜999999、6桁）でストレージを新規作成してから Function App（Flex Consumption プラン）を新規作成・デプロイします。
-# Flex Consumption は az functionapp create --flexconsumption-location でプラン自動作成。
-# リソースグループは既存を利用する前提です。新規作成時には環境変数（vars）に AZURE_LOCATION が必要です。
+# 役割分担: 関数アプリ等のリソースは Terraform で作成済み。このワークフローは zip デプロイ（アプリ中身の反映）のみ行う。
 on:
     # 以下のブランチにプッシュされた際起動
     push:
@@ -30,7 +27,7 @@ jobs:
             echo "env_name=TEST" >> $GITHUB_OUTPUT
           else
             echo "env_name=TEST" >> $GITHUB_OUTPUT
-          fi         
+          fi
           
       - run: echo "環境名： ${{ steps.branch_check.outputs.env_name }}"
         
@@ -38,34 +35,31 @@ jobs:
       env_name: ${{ steps.branch_check.outputs.env_name }}
 
   Brownie-Atelier-Controller-Deploy:
-    # デプロイ手順参考サイト : https://learn.microsoft.com/ja-jp/azure/azure-functions/functions-how-to-github-actions?tabs=linux%2Cpython&pivots=method-manual#tabpanel_2_python_windows
+    # デプロイ手順参考: https://learn.microsoft.com/ja-jp/azure/azure-functions/functions-how-to-github-actions?tabs=linux%2Cpython&pivots=method-manual#tabpanel_2_python_windows
     needs: [Branch-Controll]
     runs-on: ubuntu-22.04
     environment:
       name: ${{ needs.Branch-Controll.outputs.env_name }}
     env:
       PYTHON_VERSION: '3.10'
-      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_FUNCTIONAPP_NAME: ${{ vars.AZURE_FUNCTIONAPP_NAME }}
 
     steps:
       - run: echo "🎉 起動イベントの種類 (${{ github.event_name }})"
       - run: echo "🐧 github上のOSの種類 (${{ runner.os }})"
       - name: リポジトリ(${{ github.repository }})・ブランチ(${{ github.ref }})にチェックアウト
-        # 上記のリポジトリ・ブランチにチェックアウト
         uses: actions/checkout@v4
         with:
-          submodules: true  # サブモジュールを含めてチェックアウト
-          fetch-depth: 0    # 全ての履歴をフェッチ
-          # token: ${{ secrets.GITHUB_TOKEN }}  # プライベートリポジトリの場合はトークンが必要
+          submodules: true
+          fetch-depth: 0
 
       - name: ワークスペースチェック
-        # クローン後はここにソースが格納される /home/runner/work/BrownieAtelierController/BrownieAtelierController
         run: |
           ls -a ${{ github.workspace }}
 
       #################################################
-      # Azure Functionsへデプロイ
+      # Azure Functions へ zip デプロイ（関数アプリは Terraform で作成済み）
       #################################################
       - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
         uses: actions/setup-python@v5
@@ -84,80 +78,15 @@ jobs:
       - name: Azure CLI Login
         uses: azure/login@v2
         with:
-          # サービスプリンシパルで認証
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: デプロイ対象の関数の存在チェック
-        id: check_functionapp
-        run: |
-          if az functionapp show \
-            --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
-            --resource-group $AZURE_RESOURCE_GROUP \
-            --output none 2>/dev/null; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Function App は既に存在します"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Function App が存在しないため、新規作成します"
-          fi
-
-      - name: 関数新規作成時のストレージを新規作成（関数未作成時のみ）
-        id: create_storage
-        if: steps.check_functionapp.outputs.exists == 'false'
-        run: |
-          PREFIX="brownieatelierfunc"
-          if [ -z "$AZURE_LOCATION" ]; then
-            echo "::error::Function App を新規作成する場合は、環境変数 AZURE_LOCATION を設定してください。"
-            exit 1
-          fi
-          # 000001〜999999 のうち、未使用の連番を採用（既存の brownieatelierfunc* を参照、24桁までなので6桁連番）
-          NAME=""
-          for i in $(seq 1 999999); do
-            SUFFIX=$(printf "%06d" $i)
-            CANDIDATE="${PREFIX}${SUFFIX}"
-            if ! az storage account show --name "$CANDIDATE" --resource-group "$AZURE_RESOURCE_GROUP" --output none 2>/dev/null; then
-              NAME="$CANDIDATE"
-              break
-            fi
-          done
-          if [ -z "$NAME" ]; then
-            echo "::error::brownieatelierfunc000001〜brownieatelierfunc999999 のいずれも使用中のため、ストレージ名を割り当てられません。"
-            exit 1
-          fi
-          echo "ストレージアカウント $NAME を作成します（使用可能な連番を自動作成）"
-          az storage account create \
-            --name "$NAME" \
-            --resource-group "$AZURE_RESOURCE_GROUP" \
-            --location "$AZURE_LOCATION" \
-            --sku Standard_LRS
-          echo "storage_name=$NAME" >> $GITHUB_OUTPUT
-
-      - name: 関数を新規作成（関数未作成時のみ）
-        if: steps.check_functionapp.outputs.exists == 'false'
-        run: |
-          az functionapp create \
-            --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
-            --resource-group $AZURE_RESOURCE_GROUP \
-            --storage-account ${{ steps.create_storage.outputs.storage_name }} \
-            --flexconsumption-location $AZURE_LOCATION \
-            --runtime python \
-            --runtime-version ${{ env.PYTHON_VERSION }} \
-            --functions-version 4
-
-      - name: Flex Consumption の初期化待機（新規作成時のみ）
-        if: steps.check_functionapp.outputs.exists == 'false'
-        run: |
-          echo "新規作成直後は Flex Consumption の初期化に時間がかかるため、90秒待機します"
-          sleep 90
-
-      - name: 関数をデプロイ
+      - name: 関数アプリに zip デプロイ
         run: |
           az functionapp deployment source config-zip \
-            --name ${{ vars.AZURE_FUNCTIONAPP_NAME }} \
-            --resource-group $AZURE_RESOURCE_GROUP \
+            --name ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --src function.zip \
             --timeout 600 \
             --build-remote true
-
