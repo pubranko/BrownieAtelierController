@@ -1,12 +1,21 @@
 name: Brownie Atelier Controller Deploy
 run-name: Brownie Atelier Controller Deploy!!!
 # 役割分担: 関数アプリ等のリソースは Terraform で作成済み。このワークフローは zip デプロイ（アプリ中身の反映）のみ行う。
+# 起動: master/develop への push のうち、アプリ配下またはこのワークフロー変更時。手動実行も可。
 on:
-    # 以下のブランチにプッシュされた際起動
-    push:
-        branches: ['develop','master']
-    # Githubより手動で起動
-    workflow_dispatch:
+  push:
+    branches: ['develop', 'master']
+    paths:
+      - '.github/workflows/brownie_atelier_controller_deploy.yml'
+      - 'BrownieAtelierHttpTrigger/**'
+      - 'BrownieAtelierTimerTrigger/**'
+      - 'BrownieAtelierBlobTrigger/**'
+      - 'BrownieAtelierStorage/**'
+      - 'shared/**'
+      - 'host.json'
+      - 'pyproject.toml'
+      - 'requirements.txt'
+  workflow_dispatch:
 
 # azure/login@v2アクションはデフォルトでOIDC認証（IDトークン連携）を使うため、以下の権限が必要。
 permissions:
@@ -35,7 +44,7 @@ jobs:
       env_name: ${{ steps.branch_check.outputs.env_name }}
 
   Brownie-Atelier-Controller-Deploy:
-    # デプロイ手順参考: https://learn.microsoft.com/ja-jp/azure/azure-functions/functions-how-to-github-actions?tabs=linux%2Cpython&pivots=method-manual#tabpanel_2_python_windows
+    # デプロイ手順参考サイト : https://learn.microsoft.com/ja-jp/azure/azure-functions/functions-how-to-github-actions?tabs=linux%2Cpython&pivots=method-manual#tabpanel_2_python_windows
     needs: [Branch-Controll]
     runs-on: ubuntu-22.04
     environment:
@@ -49,17 +58,20 @@ jobs:
       - run: echo "🎉 起動イベントの種類 (${{ github.event_name }})"
       - run: echo "🐧 github上のOSの種類 (${{ runner.os }})"
       - name: リポジトリ(${{ github.repository }})・ブランチ(${{ github.ref }})にチェックアウト
+        # 上記のリポジトリ・ブランチにチェックアウト
         uses: actions/checkout@v4
         with:
-          submodules: true
-          fetch-depth: 0
+          submodules: true  # サブモジュールを含めてチェックアウト
+          fetch-depth: 0    # 全ての履歴をフェッチ
+          # token: ${{ secrets.GITHUB_TOKEN }}  # プライベートリポジトリの場合はトークンが必要
 
       - name: ワークスペースチェック
+        # クローン後はここにソースが格納される /home/runner/work/BrownieAtelierController/BrownieAtelierController
         run: |
           ls -a ${{ github.workspace }}
 
       #################################################
-      # Azure Functions へ zip デプロイ（関数アプリは Terraform で作成済み）
+      # Azure Functionsへデプロイ
       #################################################
       - name: Setup Python ${{ env.PYTHON_VERSION }} Environment
         uses: actions/setup-python@v5
@@ -78,6 +90,7 @@ jobs:
       - name: Azure CLI Login
         uses: azure/login@v2
         with:
+          # サービスプリンシパルで認証
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}

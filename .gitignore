@@ -134,3 +134,9 @@ settings.ini
 *.crt
 *.pem
 local.settings.json
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars.json

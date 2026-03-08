@@ -1,0 +1,142 @@
+# Function App のアプリ設定（環境変数）を Azure に反映する。
+# 前提: 各 GitHub Environment（PRODUCT / TEST）に vars および secrets を設定済みであること。
+# 起動: master/develop への push のうち、このワークフロー変更時のみ。手動実行も可。
+# 環境: ブランチで制御（master → PRODUCT, develop → TEST）。
+#
+# Azure が自動作成する以下のキーは設定しない:
+#   APPLICATIONINSIGHTS_CONNECTION_STRING, AzureWebJobsStorage, DEPLOYMENT_STORAGE_CONNECTION_STRING
+#
+# 各 Environment に登録する vars（例）:
+#   AZURE_LOCATION, AZURE_RESOURCE_GROUP_NAME, AZURE_STORAGE__ACCOUNT_NAME, AZURE_SUBSCRIPTION_ID,
+#   CONTAINER__MONGO_USE_DB, CONTAINER__MONGO_USER,
+#   CONTAINER_CRAWLER__MONGO_PORT, CONTAINER_CRAWLER__MONGO_TLS, CONTAINER_CRAWLER__MONGO_TLS_CA_FILE,
+#   CONTAINER_CRAWLER__MONGO_TLS_CERTTIFICATE_KEY_FILE, CONTAINER_CRAWLER__NOTICE__SLACK_CHANNEL_ID__ERROR,
+#   CONTAINER_CRAWLER__NOTICE__SLACK_CHANNEL_ID__NOMAL, CONTAINER_CRAWLER__PREFECT__API_URL,
+#   CONTAINER_CRAWLER__SLEEP_TIME_AFTER_PREFECT_SERVER_STARTUP,
+#   CONTAINER_MONGO__DNS_NAME_LABEL, CONTAINER_MONGO__MONGO_CONF, CONTAINER_MONGO__MONGO_INITDB_ROOT_USERNAME,
+#   CONTAINER_MONGO__MONGO_TAG, CONTAINER_MONGO__PORT, CONTAINER_MONGO__RESOURCE_CPU,
+#   CONTAINER_MONGO__RESOURCE_MEMORY_IN_GB,
+#   CONTAINER_NEWS_CRAWLER__RESOURCE_CPU, CONTAINER_NEWS_CRAWLER__RESOURCE_MEMORY_IN_GB,
+#   CONTAINER_NEWS_CRAWLER__TAG, TIMER_TRIGGER_SCHEDULE
+#
+# 各 Environment に登録する secrets（例）:
+#   AZURE_STORAGE__ACCOUNT_KEY, AZURE_STORAGE__CONNECTION_STRING,
+#   ACI_DOCKER_IMAGE__REGISTRY_USERNAME, ACI_DOCKER_IMAGE__REGISTRY_PASSWORD,
+#   CONTAINER__MONGO_PASS, CONTAINER_CRAWLER__NOTICE__SLACK_TOKEN,
+#   CONTAINER_MONGO__MONGO_INITDB_ROOT_PASSWORD
+# （既存の Azure ログイン用: AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID）
+
+name: Function App - Set App Settings
+run-name: Set App Settings (${{ github.ref_name }})
+
+on:
+  push:
+    branches: ['develop', 'master']
+    paths:
+      - '.github/workflows/function_app_settings.yml'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  Branch-Controll:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: ブランチより環境を選択 (現在のブランチ： ${{ github.ref }})
+        id: branch_check
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            echo "env_name=PRODUCT" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            echo "env_name=TEST" >> $GITHUB_OUTPUT
+          else
+            echo "env_name=TEST" >> $GITHUB_OUTPUT
+          fi
+          
+      - run: echo "環境名： ${{ steps.branch_check.outputs.env_name }}"
+        
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}
+
+
+
+  Brownie-Atelier-Controller-App-Settings-Deploy:
+    needs: [Branch-Controll]
+    runs-on: ubuntu-22.04
+    environment:
+      name: ${{ needs.Branch-Controll.outputs.env_name }}
+
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_FUNCTIONAPP_NAME: ${{ vars.AZURE_FUNCTIONAPP_NAME }}
+
+    steps:
+      - name: Azure CLI をインストール
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          az version
+
+      - name: Azure にログイン
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Function App にアプリ設定を反映
+        run: |
+          # 値は GitHub Environment（PRODUCT / TEST）の vars および secrets から取得。
+          # 機密は secrets、それ以外は vars に登録すること。
+          # AzureWebJobs.* は GitHub の変数名でドットが使えないため、アンダースコア版（例: AzureWebJobs_BrownieAtelierBlobTrigger_Disabled）を登録すること。
+          az functionapp config appsettings set \
+            --name "${{ env.AZURE_FUNCTIONAPP_NAME }}" \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --settings \
+              "AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+              "AZURE_LOCATION=${{ vars.AZURE_LOCATION }}" \
+              "AZURE_RESOURCE_GROUP_NAME=${{ vars.AZURE_RESOURCE_GROUP_NAME }}" \
+
+              "AZURE_STORAGE__ACCOUNT_NAME=${{ vars.AZURE_STORAGE__ACCOUNT_NAME }}" \
+              "AZURE_STORAGE__ACCOUNT_KEY=${{ secrets.AZURE_STORAGE__ACCOUNT_KEY }}" \
+              "AZURE_STORAGE__CONNECTION_STRING=${{ secrets.AZURE_STORAGE__CONNECTION_STRING }}" \
+
+              "ACI_DOCKER_IMAGE__REGISTRY_USERNAME=${{ secrets.ACI_DOCKER_IMAGE__REGISTRY_USERNAME }}" \
+              "ACI_DOCKER_IMAGE__REGISTRY_PASSWORD=${{ secrets.ACI_DOCKER_IMAGE__REGISTRY_PASSWORD }}" \
+
+              # コンテナー共通: タイマートリガー設定
+              "TIMER_TRIGGER_SCHEDULE=${{ vars.TIMER_TRIGGER_SCHEDULE }}" \
+
+              # コンテナー共通: mongoDB接続情報
+              "CONTAINER__MONGO_USE_DB=${{ vars.CONTAINER__MONGO_USE_DB }}" \
+              "CONTAINER__MONGO_USER=${{ vars.CONTAINER__MONGO_USER }}" \
+              "CONTAINER__MONGO_PASS=${{ secrets.CONTAINER__MONGO_PASS }}" \
+
+              # MongoDBコンテナー設定
+              "CONTAINER_MONGO__RESOURCE_CPU=${{ vars.CONTAINER_MONGO__RESOURCE_CPU }}" \
+              "CONTAINER_MONGO__RESOURCE_MEMORY_IN_GB=${{ vars.CONTAINER_MONGO__RESOURCE_MEMORY_IN_GB }}" \
+              "CONTAINER_MONGO__DNS_NAME_LABEL=${{ vars.CONTAINER_MONGO__DNS_NAME_LABEL }}" \
+              "CONTAINER_MONGO__MONGO_CONF=${{ vars.CONTAINER_MONGO__MONGO_CONF }}" \
+              "CONTAINER_MONGO__MONGO_INITDB_ROOT_PASSWORD=${{ secrets.CONTAINER_MONGO__MONGO_INITDB_ROOT_PASSWORD }}" \
+              "CONTAINER_MONGO__MONGO_INITDB_ROOT_USERNAME=${{ vars.CONTAINER_MONGO__MONGO_INITDB_ROOT_USERNAME }}" \
+              "CONTAINER_MONGO__MONGO_TAG=${{ vars.CONTAINER_MONGO__MONGO_TAG }}" \
+              "CONTAINER_MONGO__PORT=${{ vars.CONTAINER_MONGO__PORT }}" \
+
+              # NewsCrawlerコンテナー設定: 
+              "CONTAINER_NEWS_CRAWLER__RESOURCE_CPU=${{ vars.CONTAINER_NEWS_CRAWLER__RESOURCE_CPU }}" \
+              "CONTAINER_NEWS_CRAWLER__RESOURCE_MEMORY_IN_GB=${{ vars.CONTAINER_NEWS_CRAWLER__RESOURCE_MEMORY_IN_GB }}" \
+              # NewsCrawlerコンテナー設定: docker image tag
+              "CONTAINER_NEWS_CRAWLER__TAG=${{ vars.CONTAINER_NEWS_CRAWLER__TAG }}" \
+              # NewsCrawlerコンテナー設定: MongoDB接続情報
+              "CONTAINER_CRAWLER__MONGO_PORT=${{ vars.CONTAINER_CRAWLER__MONGO_PORT }}" \
+              "CONTAINER_CRAWLER__MONGO_TLS=${{ vars.CONTAINER_CRAWLER__MONGO_TLS }}" \
+              "CONTAINER_CRAWLER__MONGO_TLS_CA_FILE=${{ vars.CONTAINER_CRAWLER__MONGO_TLS_CA_FILE }}" \
+              "CONTAINER_CRAWLER__MONGO_TLS_CERTTIFICATE_KEY_FILE=${{ vars.CONTAINER_CRAWLER__MONGO_TLS_CERTTIFICATE_KEY_FILE }}" \
+              # NewsCrawlerコンテナー設定: Slack通知設定
+              "CONTAINER_CRAWLER__NOTICE__SLACK_TOKEN=${{ secrets.CONTAINER_CRAWLER__NOTICE__SLACK_TOKEN }}" \
+              "CONTAINER_CRAWLER__NOTICE__SLACK_CHANNEL_ID__ERROR=${{ vars.CONTAINER_CRAWLER__NOTICE__SLACK_CHANNEL_ID__ERROR }}" \
+              "CONTAINER_CRAWLER__NOTICE__SLACK_CHANNEL_ID__NOMAL=${{ vars.CONTAINER_CRAWLER__NOTICE__SLACK_CHANNEL_ID__NOMAL }}" \
+              # NewsCrawlerコンテナー設定: Prefect Server 接続情報
+              "CONTAINER_CRAWLER__PREFECT__API_URL=${{ vars.CONTAINER_CRAWLER__PREFECT__API_URL }}" \
+              "CONTAINER_CRAWLER__SLEEP_TIME_AFTER_PREFECT_SERVER_STARTUP=${{ vars.CONTAINER_CRAWLER__SLEEP_TIME_AFTER_PREFECT_SERVER_STARTUP }}"
