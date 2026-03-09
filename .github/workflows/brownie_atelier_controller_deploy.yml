@@ -1,5 +1,5 @@
 name: Brownie Atelier Controller Deploy
-run-name: Brownie Atelier Controller Deploy!!!
+run-name: Brownie Atelier Controller Deploy (${{ github.ref_name }})!!!
 # 役割分担: 関数アプリ等のリソースは Terraform で作成済み。このワークフローは zip デプロイ（アプリ中身の反映）のみ行う。
 # 起動: master/develop への push のうち、アプリ配下またはこのワークフロー変更時。手動実行も可。
 on:
@@ -90,8 +90,8 @@ jobs:
       - name: Azure CLI Login
         uses: azure/login@v2
         with:
-          # サービスプリンシパルで認証
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          # サービスプリンシパルで認証（デプロイ用クライアント）
+          client-id: ${{ secrets.AZURE_CLIENT_ID__GITHUB_DEPLOY }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
