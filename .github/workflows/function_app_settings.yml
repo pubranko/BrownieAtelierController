@@ -20,11 +20,13 @@
 #   CONTAINER_NEWS_CRAWLER__TAG, TIMER_TRIGGER_SCHEDULE
 #
 # 各 Environment に登録する secrets（例）:
+#   AZURE_CLIENT_ID__GITHUB_DEPLOY（デプロイ・az ログイン用）, AZURE_CLIENT_ID__FUNCTION_EXEC（関数内 DefaultAzureCredential 用）,
+#   AZURE_TENANT_ID, AZURE_CLIENT_SECRET__FUNCTION_EXEC（関数実行用 SP のシークレット）,
 #   AZURE_STORAGE__ACCOUNT_KEY, AZURE_STORAGE__CONNECTION_STRING,
 #   ACI_DOCKER_IMAGE__REGISTRY_USERNAME, ACI_DOCKER_IMAGE__REGISTRY_PASSWORD,
 #   CONTAINER__MONGO_PASS, CONTAINER_CRAWLER__NOTICE__SLACK_TOKEN,
 #   CONTAINER_MONGO__MONGO_INITDB_ROOT_PASSWORD
-# （既存の Azure ログイン用: AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID）
+# （従来の AZURE_CLIENT_ID は __GITHUB_DEPLOY / __FUNCTION_EXEC に分割済み）
 
 name: Function App - Set App Settings
 run-name: Set App Settings (${{ github.ref_name }})
@@ -81,7 +83,7 @@ jobs:
       - name: Azure にログイン
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID__GITHUB_DEPLOY }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
@@ -95,6 +97,9 @@ jobs:
             --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
             --settings \
               "AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+              "AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID__FUNCTION_EXEC }}" \
+              "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" \
+              "AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET__FUNCTION_EXEC }}" \
               "AZURE_LOCATION=${{ vars.AZURE_LOCATION }}" \
               "AZURE_RESOURCE_GROUP_NAME=${{ vars.AZURE_RESOURCE_GROUP_NAME }}" \
               "AZURE_STORAGE__ACCOUNT_NAME=${{ vars.AZURE_STORAGE__ACCOUNT_NAME }}" \
